@@ -8,18 +8,23 @@ DEFINE_BASECLASS("weapon_tttbase")
 SWEP.HoldType = "normal"
 
 if CLIENT then
-    SWEP.PrintName = "Deployable Armor Bag"
+    SWEP.PrintName = "ttt_armor_bag_name"
     SWEP.Slot = 6
 
     SWEP.ShowDefaultViewModel = false
 
     SWEP.EquipMenuData = {
         type = "item_weapon",
-        desc = "Deploy this Armor Bag to armor up your teammates. Contains 3 armor plates to share!",
+        desc = "ttt_armor_bag_desc",
     }
 
     SWEP.Icon = "vgui/ttt/icon_armor_bag"
 end
+
+-- SUPER CONFIGURABLE VARIABLES
+CreateConVar("ttt_armorbag_max_plates_stored", "3", flags)
+CreateConVar("ttt_armorbag_armor_per_plate", "30", flags)
+CreateConVar("ttt_armorbag_prevent_armor_higher_than", "30", flags)
 
 SWEP.Base = "weapon_tttbase"
 
@@ -55,9 +60,9 @@ function SWEP:PrimaryAttack()
     self:SetNextPrimaryFire(CurTime() + self.Primary.Delay)
 
     if SERVER then
-        local health = ents.Create("ttt2_armor_bag")
+        local bag = ents.Create("ttt2_armor_bag")
 
-        if health:ThrowEntity(self:GetOwner(), Angle(90, -90, 0)) then
+        if bag:ThrowEntity(self:GetOwner(), Angle(90, -90, 0)) then
             self:Remove()
         end
     end
@@ -73,7 +78,7 @@ end
 -- @realm shared
 function SWEP:Initialize()
     if CLIENT then
-        self:AddTTT2HUDHelp("Throw down a Armor Bag.")
+        self:AddTTT2HUDHelp("ttt_armor_bag_help")
     end
 
     self:SetColor(self.drawColor)
@@ -82,8 +87,6 @@ function SWEP:Initialize()
 end
 
 if CLIENT then
-    ---
-    -- @realm client
     function SWEP:DrawWorldModel()
         if IsValid(self:GetOwner()) then
             return
@@ -91,8 +94,43 @@ if CLIENT then
 
         self:DrawModel()
     end
-
-    ---
-    -- @realm client
+	
     function SWEP:DrawWorldModelTranslucent() end
+	
+	function SWEP:AddToSettingsMenu(parent)
+        local form = vgui.CreateTTT2Form(parent, "header_equipment_additional")
+
+        form:MakeHelp({
+            label = "help_ttt_armorbag_max_plates_stored",
+        })
+        form:MakeSlider({
+            serverConvar = "ttt_armorbag_max_plates_stored",
+            label = "label_armorbag_max_plates_stored",
+            min = 0,
+            max = 10,
+            decimal = 0,
+        })
+
+        form:MakeHelp({
+            label = "help_ttt_armorbag_armor_per_plate",
+        })
+        form:MakeSlider({
+            serverConvar = "ttt_armorbag_armor_per_plate",
+            label = "label_ttt_armorbag_armor_per_plate",
+            min = 1,
+            max = 100,
+            decimal = 0,
+        })
+
+        form:MakeHelp({
+            label = "help_ttt_armorbag_prevent_armor_higher_than",
+        })
+        form:MakeSlider({
+            serverConvar = "ttt_armorbag_prevent_armor_higher_than",
+            label = "label_ttt_armorbag_prevent_armor_higher_than",
+            min = 1,
+            max = 100,
+            decimal = 0,
+        })
+    end
 end

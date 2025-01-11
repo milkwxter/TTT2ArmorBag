@@ -1,36 +1,32 @@
 if SERVER then
     AddCSLuaFile()
+	resource.AddFile( "sound/plate_in.wav" )
+	resource.AddFile( "materials/vgui/ttt/icon_armor_bag.vmt" )
+	resource.AddFile( "materials/johnsheppard44/caliber/military/equipment/t_wp_i_armorrefill_a.vmt" )
+	resource.AddFile( "models/johnsheppard44/caliber/military/equipment/armor plate.mdl" )
+	resource.AddFile( "models/johnsheppard44/caliber/military/equipment/armor refill bag.mdl" )
 end
 
 DEFINE_BASECLASS("ttt_base_placeable")
 
 if CLIENT then
     ENT.Icon = "vgui/ttt/icon_armor_bag"
-    ENT.PrintName = "Deployable Armor Bag"
+    ENT.PrintName = "ttt_armor_bag_name"
 end
 
 ENT.Base = "ttt_base_placeable"
 ENT.Model = "models/johnsheppard44/caliber/military/equipment/armor refill bag.mdl"
 
 ENT.CanHavePrints = true
-ENT.MaxStored = 3
-ENT.RechargeRate = 1
-ENT.RechargeFreq = 2 -- in seconds
+ENT.MaxStored = GetConVar("ttt_armorbag_max_plates_stored"):GetInt()
+ENT.NextUse = 0
 
-ENT.NextHeal = 0
-ENT.HealRate = 1
-ENT.HealFreq = 0.2
-
----
--- @realm shared
 function ENT:SetupDataTables()
     BaseClass.SetupDataTables(self)
 
     self:NetworkVar("Int", 0, "StoredHealth")
 end
 
----
--- @realm shared
 function ENT:Initialize()
     self:SetModel(self.Model)
 
@@ -53,18 +49,13 @@ function ENT:Initialize()
 
     self:SetHealth(100)
     self:SetColor(Color(250, 250, 250, 255))
-    self:SetStoredHealth(3)
+    self:SetStoredHealth(GetConVar("ttt_armorbag_max_plates_stored"):GetInt())
 
-    self.NextHeal = 0
+    self.NextUse = 0
     self.fingerprints = {}
 end
 
----
--- @param number amount
--- @return number
--- @realm shared
 function ENT:TakeFromStorage(amount)
-    -- if we only have 5 healthpts in store, that is the amount we heal
     amount = math.min(amount, self:GetStoredHealth())
 
     self:SetStoredHealth(math.max(0, self:GetStoredHealth() - amount))
@@ -72,35 +63,19 @@ function ENT:TakeFromStorage(amount)
     return amount
 end
 
-local soundHealing = Sound("plate_in.mp3")
-local timeLastSound = 0
+local soundArmoring = Sound("plate_in.mp3")
 
----
--- This hook that is called on the use of this entity, but only if the player
--- can be healed.
--- @param Player ply The player that is healed
--- @param Entity ent The healthstation entity that is used
--- @param number healed The amount of health receivde in this tick
--- @return boolean Return false to cancel the heal tick
--- @hook
--- @realm server
-function GAMEMODE:TTTPlayerUsedHealthStation(ply, ent, healed) end
-
----
--- @param Player ply
--- @param number healthMax
--- @return boolean
--- @realm shared
-function ENT:GiveArmor(ply, healthMax)
+function ENT:GiveArmor(ply)
+	-- if there is armor left in the bag
     if self:GetStoredHealth() > 0 then
-		if ply:GetArmor() > 30 then return false end
+	
+		-- make sure he doesnt go over the prevention threshold cvar
+		if ply:GetArmor() >= GetConVar("ttt_armorbag_prevent_armor_higher_than"):GetInt() then return false end
+		
         self:TakeFromStorage(1)
-        ply:GiveEquipmentItem("item_ttt_armor")
+        ply:GiveArmor(GetConVar("ttt_armorbag_armor_per_plate"):GetInt())
         
-        if timeLastSound + 2 < CurTime() then
-            self:EmitSound(soundHealing)
-            timeLastSound = CurTime()
-        end
+		self:EmitSound(soundArmoring)
 
         if not table.HasValue(self.fingerprints, ply) then
            self.fingerprints[#self.fingerprints + 1] = ply
@@ -113,34 +88,19 @@ function ENT:GiveArmor(ply, healthMax)
 end
 
 if SERVER then
-    ---
-    -- @param Player ply
-    -- @realm server
     function ENT:Use(ply)
         if not IsValid(ply) or not ply:IsPlayer() or not ply:IsActive() then
             return
         end
 
         local t = CurTime()
-        if t < self.NextHeal then
+        if t < self.NextUse then
             return
         end
 
-        local healed = self:GiveArmor(ply, self.HealRate)
+        local armoringUser = self:GiveArmor(ply)
 
-        self.NextHeal = t + (self.HealFreq * (healed and 1 or 2))
-    end
-
-    ---
-    -- @realm server
-    function ENT:WasDestroyed()
-        local originator = self:GetOriginator()
-
-        if not IsValid(originator) then
-            return
-        end
-
-        LANG.Msg(originator, "Your deployable armor bag was destroyed!", nil, MSG_MSTACK_WARN)
+        self.NextUse = t + 1
     end
 else
     local TryT = LANG.TryTranslation
@@ -150,12 +110,7 @@ else
         usekey = Key("+use", "USE"),
         walkkey = Key("+walk", "WALK"),
     }
-
-    ---
-    -- Hook that is called if a player uses their use key while focusing on the entity.
-    -- Early check if client can use the health station
-    -- @return bool True to prevent pickup
-    -- @realm client
+	
     function ENT:ClientUse()
         local client = LocalPlayer()
 
@@ -164,7 +119,7 @@ else
         end
     end
 
-    -- handle looking at healthstation
+    -- handle looking at armor bag
     hook.Add("TTTRenderEntityInfo", "HUDDrawTargetIDArmorBag", function(tData)
         local client = LocalPlayer()
         local ent = tData:GetEntity()
@@ -186,24 +141,30 @@ else
         tData:SetOutlineColor(client:GetRoleColor())
 
         tData:SetTitle(TryT(ent.PrintName))
-        tData:SetSubtitle("Press [E] to armor up.")
+        tData:SetSubtitle(TryT("ttt_armor_bag_directions"))
 
-        local hstation_charge = ent:GetStoredHealth() or 0
+        local armor_charges = ent:GetStoredHealth() or 0
 
-        tData:AddDescriptionLine("Armor plates reduce incoming damage.")
+        tData:AddDescriptionLine(TryT("ttt_armor_bag_explanation"))
 
         -- Tell player how many armor plates are inside
-        if(hstation_charge == 0) then
-            tData:AddDescriptionLine("Remaining plates: " .. hstation_charge, COLOR_RED)
+        if(armor_charges == 0) then
+            tData:AddDescriptionLine(TryT("ttt_armor_bag_subtitle_amount_left") .. "EMPTY", COLOR_RED)
         else
-            tData:AddDescriptionLine("Remaining plates: " .. hstation_charge, COLOR_BLUE)
+            tData:AddDescriptionLine(TryT("ttt_armor_bag_subtitle_amount_left") .. armor_charges, COLOR_BLUE)
         end
 
-        -- If player already has armor
-        if client:GetArmor() < 31 then
-            tData:AddDescriptionLine(("You have " .. client:GetArmor() .. " armor."), COLOR_ORANGE)
+        -- If player does not have enough armor to trigger the threshold
+        if client:GetArmor() < GetConVar("ttt_armorbag_prevent_armor_higher_than"):GetInt() then
+            tData:AddDescriptionLine(ParT("ttt_armor_bag_armor_readout", {
+                    armorAmount = client:GetArmor(),
+                }), COLOR_ORANGE)
             return
         end
-        tData:AddDescriptionLine(("You already have " .. client:GetArmor() .. " reinforced armor. No more for you."), COLOR_ORANGE)
+		
+		-- If player HAS ENOUGH to trigger the threshold
+        tData:AddDescriptionLine(ParT("ttt_armor_bag_armor_readout_bad", {
+                    armorAmount = client:GetArmor(),
+                }), COLOR_ORANGE)
     end)
 end
