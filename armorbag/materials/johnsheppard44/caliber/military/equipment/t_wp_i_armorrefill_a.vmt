@@ -1,0 +1,74 @@
+"VertexLitGeneric"
+{
+	"$BaseTexture" 				"JohnSheppard44/Caliber/Military/Equipment/T_WP_I_ArmorRefill_A" // Other types include: DIFFUSE | COLOR | ALBEDO //
+
+	"$BumpMap" 				"JohnSheppard44/Caliber/Military/Equipment/T_WP_I_ArmorRefill_N" // Other types include: NORMAL | BUMP | NORMAL ALPHA (when doing the $NormalMapAlphaEnvMapMask process) //
+
+//	"$AmbientOcclTexture" 			"JohnSheppard44/_SPECULAR"  // [MAY REMOVE THIS LINE, MAY NOT BE COMPATIBLE WITH "$PHONGEXPONENTTEXTURE"] //
+
+//	"$HeightMap"				"JohnSheppard44/_HEIGHT"
+
+//	"$DisplacementMap"				"JohnSheppard44/_HEIGHT" // Alternative to $bumpmap that uses a heightmap to give the illusion of depth. It's the most realistic of all the texture shadowing techniques, but consequently is also the most expensive. It requires a model compiled with $subd on the QC. //
+
+//	"$EnvMap"				"env_cubemap"
+//	"$EnvMapMask"				"JohnSheppard44/_SPECULAR"
+//	"$EnvMapTint"				"[1 1 1]" // Controls the intensity of the reflection's red, green and blue color channels. Any positive number can be used. Default is "[1 1 1]", which means 100% intensity. //
+//	"$EnvMapContrast"				"0" // Controls the contrast of the reflection. 0 is natural contrast, while 1 is the full squaring of the color (i.e. color*color). Won't work with Phong enabled. //
+//	"$EnvMapSaturation"			"0" // Controls the colour saturation of the reflection. 0 is greyscale, while 1 is natural saturation. Will not work when Phong is enabled
+
+
+//	"$EmissiveBlendBaseTexture"			"JohnSheppard44/_EMISSIVE" // Material or Emissive, i'll decide on the name later. Related to glowing textures, specific parts. //
+//	"$EmissiveBlendTexture"			"JohnSheppard44/Shared/Emissive"
+//	"$EmissiveBlendFlowTexture"			"JohnSheppard44/Shared/Emissive"
+
+//	"$EmissiveBlendEnabled"			"1"
+//	"$EmissiveBlendTint"			"[1 1 1]"
+//	"$EmissiveBlendStrength"			"1"
+//	"$EmissiveBlendScrollVector"			"[1 1]"
+
+
+//	"$Detail"					"JohnSheppard44/" // Uses a texture, commonly a very small resolution flat color one, to apply its effect on all parts that use this VTF's VMT. Common on Call Of Duty models //
+//	"$DetailTextureTransform"			" "
+//	"$DetailScale" 				"4"
+//	"$DetailBlendFactor" 			"1"
+//	"$DetailBlendMode" 				"0"
+//	"$DetailTint"				"[0.5 0.5 0.5]"
+//	"$DetailFrame"				" "
+//	"$Detail_Alpha_Mask_Base_Texture"		"JohnSheppard44/_ALPHAMASK"
+
+
+//	"$Reflectivity"				"[.5 .5 .5] // Overrides a VTF file's embedded reflectivity value. It tells VRAD how much light should be bounced off the material, without affecting how much it receives. The value is a material vector, representing a RGB color value.  //
+	"$Selfillum" 				"0"
+	"$Alphatest"				"0"
+	"$AmbientOcclusion"			"0"
+	"$Translucent"				"0" // If turned on "1", toggle $mostlyopaque on the model's QC, otherwise shadows will not render. Mostly used on Call of Duty models that have transparency. For Unreal Engine and others, utilize $AlphaTest. //
+	"$SurfaceProp" 				"metal" // Commonly used: metal, rubber, glass, tile, weapon, concrete, Wood, flesh, plastic, plaster, metalvehicle, brick, rock, grenade, //
+//	"$NormalMapAlphaEnvMapMask"		"0" // Requires the Specular map red channel to be pasted on the Normal map Alpha channel. //
+	"$HalfLambert"	 			"0"
+	"$NoCull" 				"1"
+	"$NoFog"					"0" // Prevents fog from overdrawing a material. Commonly used on 2D Skyboxes. //
+	"$NoDecal"				"0" // $nodecal "1" will stop bullet holes and other decals from applying to the textures flagged with it in their VMTs. //
+
+
+	"$Phong" 					"0.5"
+	"$PhongExponent" 				"30"
+	"$PhongExponentTexture" 			"JohnSheppard44/Caliber/Military/Equipment/T_WP_I_ArmorRefill_MOs" // [MAY REMOVE THIS LINE, MAY NOT BE COMPATIBLE WITH "$AMBIENTOCCLUSION"] //
+//	"$PhongExponentFactor"			"20" // Multiply the exponent texture by this amount. (Only in Source 2013 MP) //
+//	"$InvertPhongMask"				"0" //Invert the value of the phong mask//
+	"$PhongBoost" 				"1.50"
+	"$PhongFresnelRanges"			"[.3 .3 1]"
+	"$PhongDisableHalfLambert"			"1"
+	"$PhongAlbedoBoost"			"255" // Ranges 0-255
+	"$PhongAlbedoTint"				"1" // Allows the $basetexture to tint the color of the Phong highlight. The amount of tint is defined by the green channel of $phongexponenttexture //
+//	"$PhongTint" 				"[0.5 0.5 0.5]" // Color tint of the phong reflection. The channels are interpreted relative to each other (so "[0 0 0]" and "[1 1 1]" are the same). //
+//	"$PhongWarpTexture"			"JohnSheppard44/_WARP" // Used to create an iridescence effect //
+
+
+//	"$RimLight"				"1" // Adds a "white light tint" on parts of the model depending on vision's angle without there being any light sources, and is still present if there are. //
+//	"$RimLightExponent"			"2"
+//	"$RimlightBoost"				".2"
+//	"$RimMask"				"JohnSheppard44/_RIMMASK" // Uses the alpha channel of the $phongexponenttexture to mask rimlighting. //
+
+
+//	"$LightWarpTexture"			"JohnSheppard44/_LIGHTWARP"
+}
