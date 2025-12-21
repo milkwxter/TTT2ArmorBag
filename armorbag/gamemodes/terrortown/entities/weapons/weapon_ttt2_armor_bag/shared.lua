@@ -135,5 +135,4 @@ if CLIENT then
             decimal = 0,
         })
     end
-
 end
