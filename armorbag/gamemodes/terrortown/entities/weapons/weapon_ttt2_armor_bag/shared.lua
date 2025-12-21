@@ -21,6 +21,8 @@ if CLIENT then
     SWEP.Icon = "vgui/ttt/icon_armor_bag"
 end
 
+local flags = {FCVAR_NOTIFY, FCVAR_ARCHIVE}
+
 -- SUPER CONFIGURABLE VARIABLES
 CreateConVar("ttt_armorbag_max_plates_stored", "3", flags)
 CreateConVar("ttt_armorbag_armor_per_plate", "30", flags)
@@ -133,4 +135,5 @@ if CLIENT then
             decimal = 0,
         })
     end
+
 end
