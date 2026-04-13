@@ -110,14 +110,6 @@ else
         usekey = Key("+use", "USE"),
         walkkey = Key("+walk", "WALK"),
     }
-	
-    function ENT:ClientUse()
-        local client = LocalPlayer()
-
-        if not IsValid(client) or not client:IsPlayer() or not client:IsActive() then
-            return true
-        end
-    end
 
     -- handle looking at armor bag
     hook.Add("TTTRenderEntityInfo", "HUDDrawTargetIDArmorBag", function(tData)
